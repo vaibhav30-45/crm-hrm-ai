@@ -1,611 +1,458 @@
-# AI Powered CRM
+# Detagenix AI CRM HRMS
 
-Enterprise-ready CRM platform with AI-assisted lead intelligence, ML-driven scoring, conversational operations, and advanced sales analytics.
+Production-style AI CRM platform for lead management, lead intelligence, and sales operations.
 
-This repository contains:
-- React + Vite frontend with a collapsible left-sidebar application shell.
-- FastAPI backend for authentication, lead lifecycle, AI workflows, and analytics.
-- ML assets and training scripts for lead temperature classification.
-- Utility services for enrichment, follow-up optimization, forecasting, chatbot tool routing, and optional Google Sheets sync.
+This project combines:
+- A React + Vite frontend (dashboard and workflows)
+- A FastAPI backend (core CRM APIs)
+- ML-based lead scoring (Hot, Warm, Cold)
+- AI workflows (chatbot, follow-up email generation, company enrichment, insights)
+- Forecasting and analytics (sales forecast, conversion scoring, CLV, conversation intelligence)
 
-## 1. Product Overview
+---
 
-The system is designed around a lead intelligence lifecycle:
-1. Capture or ingest lead data.
-2. Score leads (Hot/Warm/Cold) with ML.
-3. Operate on leads via dashboards, profile pages, and AI workflows.
-4. Generate sales insights from conversation artifacts.
-5. Optimize follow-up timing/channel.
-6. Forecast revenue and closure trends.
-7. Predict Client Lifetime Value (CLV) signals for expansion planning.
-8. Use chatbot tooling for natural-language CRM operations.
+## 1. What This Project Does
+
+Detagenix AI CRM HRMS helps teams:
+- Capture and manage leads
+- Score lead quality with ML
+- Enrich lead/company profiles with AI and web context
+- Generate follow-up emails with LLMs
+- Run follow-up optimization recommendations
+- Predict conversion probability and client lifetime value
+- Analyze sales conversations and extract intelligence
+- Forecast pipeline and revenue signals
+
+---
 
 ## 2. Current Architecture
 
 ```text
-Frontend (React/Vite, port 3000)
-		|
-		| HTTP JSON / multipart
-		v
-Backend API (FastAPI, port 8000)
-		|
-		+--> MongoDB (users, leads, ai_insights)
-		+--> ML model artifacts (lead temperature model)
-		+--> LLM providers (Gemini/OpenAI/Groq/Anthropic) for AI features
-		+--> Optional Google Sheets sync utilities
+Frontend (React + Vite, Port 3000)
+        |
+        | HTTP JSON / multipart
+        v
+Backend (FastAPI, Port 8000)
+        |
+        +--> MongoDB (users, leads, ai_insights, generated_leads, conversation intelligence data)
+        +--> ML model artifacts (lead temperature + conversion scoring modules)
+        +--> LLM providers (Gemini/OpenAI/Groq/Anthropic, configurable)
+        +--> Optional scheduler utility (MongoDB -> Google Sheets sync)
 ```
 
-Primary backend entrypoint: `backend/services/main.py`.
+Primary backend entrypoint: `backend/services/main.py`
 
-## 3. Repository Structure (Key Paths)
+Primary frontend entrypoint: `frontend/src/main.jsx`
+
+---
+
+## 3. Repository Layout (Important Folders)
 
 ```text
-AI_Powered_CRM/
-├── app.py                                    # Legacy Flask entrypoint (not primary runtime)
-├── backend/
-│   ├── requirements.txt
-│   ├── setup.py
-│   └── services/
-│       ├── main.py                           # Primary FastAPI app
-│       ├── auth_service.py                   # MongoDB-backed auth
-│       ├── auth_service_inmemory.py          # Dev fallback auth
-│       ├── ml_prediction_service.py          # Lead scoring + lead storage/retrieval
-│       ├── email_generator.py                # Smart follow-up email generator
-│       ├── mongo_to_sheets.py                # MongoDB -> Google Sheets sync utility
-│       ├── start_crm_services.py             # Combined API + scheduler runner
-│       ├── chatbot/
-│       │   ├── chatbot_controller.py         # Tool-routing orchestrator
-│       │   ├── gemini_client.py              # Gemini routing + fallback behavior
-│       │   ├── tool_schema.py                # Tool contracts
-│       │   └── tools/                        # get_leads/add_lead/get_stats/enrichment handlers
-│       ├── followup_service/
-│       │   ├── router.py                     # /followup/optimize
-│       │   ├── data_processor.py
-│       │   ├── pattern_analyzer.py
-│       │   └── ai_recommender.py
-│       ├── client_ltv/
-│       │   ├── router.py                     # /clv/predict
-│       │   └── predictor.py
-│       ├── sales_forecasting/
-│       │   └── forecast_service.py
-│       ├── smart lead summary/
-│       │   └── ai_insights_service.py        # Stores AI insights in MongoDB
-│       └── lead data enrichment/
-│           ├── ai_processor.py
-│           ├── domain_extractor.py
-│           └── website_scraper.py
-├── frontend/
-│   ├── package.json
-│   ├── vite.config.js
-│   └── src/
-│       ├── App.jsx                           # Route registration + sidebar shell
-│       ├── api/Api.jsx                       # Axios base URL + interceptors
-│       ├── components/
-│       │   ├── Navbar.jsx                    # Collapsible left sidebar shell
-│       │   └── SmartEmailGeneratorModal.jsx
-│       ├── pages/                            # Feature pages
-│       └── services/                         # feature-specific API clients
-├── ml_model/
-│   ├── train_model.py
-│   ├── models/
-│   │   ├── lead_temperature_model.pkl
-│   │   └── temperature_model_metadata.json
-│   └── data/
-├── INTEGRATION_GUIDE.md
-└── requirements.txt
+Detagenix AI CRM HRMS/
+|-- README.md
+|-- app.py                          # Legacy Flask app (not primary runtime)
+|-- requirements.txt
+|-- backend/
+|   |-- requirements.txt
+|   `-- services/
+|       |-- main.py                 # Primary FastAPI app
+|       |-- start_crm_services.py   # API + periodic sync runner
+|       |-- ml_prediction_service.py
+|       |-- auth_service.py
+|       |-- auth_service_inmemory.py
+|       |-- email_generator.py
+|       |-- followup_service/
+|       |-- client_ltv/
+|       |-- chatbot/
+|       |-- sales_forecasting/
+|       |-- smart lead summary/
+|       |-- conversation intelligence engine/
+|       |-- lead data enrichment/
+|       `-- Lead scoring engine/
+|-- frontend/
+|   |-- package.json
+|   |-- vite.config.js
+|   `-- src/
+|       |-- App.jsx
+|       |-- api/Api.jsx
+|       |-- components/
+|       |-- pages/
+|       `-- services/
+`-- ml_model/
+    |-- train_model.py
+    `-- models/
 ```
 
-## 4. Tech Stack
+---
 
-### Frontend
-- React 18
-- React Router
-- Axios
-- Tailwind CSS
-- Chart.js + react-chartjs-2
-- Lucide icons
-- Vite
+## 4. Core Features and How They Work
 
-### Backend
-- FastAPI + Uvicorn
-- Pydantic
-- PyMongo / Motor (dependencies include both sync and async tooling)
-- scikit-learn, pandas, scipy, joblib
-- python-dotenv
-- Requests + HTTPX
+### 4.1 Authentication (Signup/Login)
+- Frontend pages: `Login`, `Signup`
+- Backend endpoints: `POST /auth/signup`, `POST /auth/login`
+- Flow:
+  1. User submits credentials in frontend form.
+  2. Backend validates and authenticates.
+  3. Token/user payload returned to frontend.
+  4. Frontend stores auth context in local storage and navigates to app routes.
 
-### Data / AI
-- MongoDB (`users`, `leads`, `ai_insights`)
-- Lead temperature classifier model in `ml_model/models`
-- LLM providers: Gemini / OpenAI / Groq / Anthropic
+### 4.2 Lead Intake + ML Temperature Prediction
+- Frontend page: `AddLead`
+- Backend endpoint: `POST /predict`
+- Flow:
+  1. User enters lead details (name/email/role/etc.).
+  2. Backend normalizes payload and validates schema.
+  3. ML service predicts lead temperature (Hot/Warm/Cold) with confidence.
+  4. Lead + prediction are persisted and returned to frontend.
 
-## 5. Runtime Requirements
+### 4.3 Lead Listing and Drilldown
+- Frontend pages: `Dashboard`, `LeadsDetail`, `CandidateProfile`
+- Backend endpoints: `GET /leads`, `GET /lead/{id}`, `GET /candidate/{id}`
+- Flow:
+  1. Dashboard fetches lead list and summary context.
+  2. User opens specific lead/candidate details.
+  3. Backend returns normalized lead document with ML metadata.
 
-- Python 3.10+ recommended
-- Node.js 18+ recommended
-- npm 9+
-- MongoDB Atlas or local MongoDB instance
+### 4.4 ML Stats and Model Metadata
+- Frontend page: `MlStateSample`
+- Backend endpoints: `GET /stats`, `GET /model/info`
+- Flow:
+  1. Frontend requests prediction stats and model info in parallel.
+  2. Backend returns aggregate counts/distribution and model metadata.
 
-## 6. Environment Variables
+### 4.5 Lead Generation from Natural Language Query
+- Frontend pages: `LeadGeneration`, `LeadDashboard`
+- Backend endpoints:
+  - `POST /lead-generation/search-query`
+  - `POST /lead-generation/qualify-search-results`
+  - `GET /lead-generation/dashboard`
+- Flow:
+  1. User enters a search query.
+  2. Backend fetches business results (SerpApi integration).
+  3. Conversion scoring module qualifies and categorizes prospects.
+  4. Results are optionally persisted in `generated_leads` and shown in dashboard.
 
-Create a root `.env` in repository root (`AI_Powered_CRM/.env`).
+### 4.6 Lead Conversion Probability Scoring
+- Frontend page: `ConversionLeadScoring`
+- Backend endpoints:
+  - `POST /lead-scoring/conversion/predict`
+  - `POST /lead-scoring/conversion/train`
+  - `GET /lead-scoring/conversion/model-info`
+- Flow:
+  1. User submits conversion factors (budget, response speed, visits, etc.).
+  2. Service predicts conversion probability and supporting details.
+  3. Optional training endpoint retrains model from historical lead outcomes.
 
-### Required for core backend
+### 4.7 AI Sales Insights
+- Frontend page: `AIInsights`
+- Backend endpoint: `POST /ai-insights/generate` (multipart/form-data)
+- Flow:
+  1. User submits transcript text and/or file.
+  2. Backend generates structured insights.
+  3. Insights are persisted.
+  4. Optionally auto-chains into conversation intelligence analysis.
 
-| Variable | Required | Default | Purpose |
-| --- | --- | --- | --- |
-| `MONGODB_URI` | Yes (unless `SKIP_MONGODB=true`) | none | MongoDB connection string |
-| `DB_NAME` | No | `ai_crm_db` | MongoDB database name |
-| `JWT_SECRET_KEY` | Yes for production | fallback insecure value in code | JWT signing key for auth |
+### 4.8 Conversation Intelligence
+- Used in `Dashboard` and `CandidateProfile`
+- Backend endpoints:
+  - `POST /conversation-intelligence/analyze`
+  - `GET /conversation-intelligence/lead/{lead_id}`
+  - `GET /conversation-intelligence/overview`
+- Flow:
+  1. Conversation text/messages are analyzed.
+  2. Intent, risk, sentiment, and coaching-style metrics are computed.
+  3. Data can be fetched by lead and as an overview for dashboard widgets.
 
-### Mongo connection tuning
+### 4.9 Follow-up Optimizer
+- Frontend page: `FollowupOptimizer`
+- Backend endpoint: `POST /followup/optimize`
+- Flow:
+  1. Frontend loads leads and interaction history payload.
+  2. Backend processes time/channel patterns.
+  3. Recommendation engine returns best day/time/channel with rationale.
 
-| Variable | Required | Default |
-| --- | --- | --- |
-| `MONGO_SERVER_SELECTION_TIMEOUT_MS` | No | `5000` or `7000` depending on module |
-| `MONGO_CONNECT_TIMEOUT_MS` | No | `5000` or `7000` |
-| `MONGO_SOCKET_TIMEOUT_MS` | No | `10000` or `12000` |
-| `MONGO_MAX_POOL_SIZE` | No | `10` |
+### 4.10 Smart Email Generator
+- Used from lead profile workflows
+- Backend endpoint: `POST /email/generate-followup`
+- Flow:
+  1. User chooses lead and context (deal stage + past communication).
+  2. Backend fetches lead details and builds prompt.
+  3. LLM generates subject/body.
+  4. Formatted response returns to frontend.
 
-### Auth / dev fallback
+### 4.11 Company/Lead Enrichment
+- Used in `CandidateProfile`
+- Backend endpoint: `POST /lead-enrichment/enrich-company`
+- Flow:
+  1. User sends company data.
+  2. Backend discovers website/domain (if needed), scrapes context, and applies AI summarization.
+  3. Intelligence output returns with supporting search context metadata.
 
-| Variable | Required | Default | Purpose |
-| --- | --- | --- | --- |
-| `SKIP_MONGODB` | No | `false` | Use in-memory auth fallback for local dev |
+### 4.12 Sales Forecasting
+- Frontend page: `SalesForecasting`
+- Backend endpoint: `GET /sales-forecast`
+- Flow:
+  1. Frontend requests forecast with configurable lookback/options.
+  2. Backend aggregates lead and pipeline data.
+  3. Forecast payload returns with trend metrics.
 
-### LLM and chatbot / smart email
+### 4.13 Client Lifetime Value (CLV)
+- Frontend page: `ClientLtvPrediction`
+- Backend endpoint: `POST /clv/predict`
+- Flow:
+  1. User selects or enters customer profile + purchase behavior.
+  2. CLV predictor computes expected value, confidence, upsell/cross-sell recommendations.
+  3. Structured business guidance is returned.
 
-| Variable | Required | Default | Purpose |
-| --- | --- | --- | --- |
-| `LLM_PROVIDER` | No | auto-resolved | Preferred provider (`gemini`, `openai`, `groq`, `anthropic`) |
-| `LLM_API_KEY` | No | none | Generic key override |
-| `LLM_MODEL` | No | provider default | Generic model override |
-| `GEMINI_API_KEY` | Optional | none | Gemini provider key |
-| `GOOGLE_API_KEY` | Optional | none | Gemini alternate key |
-| `GEMINI_MODEL` | No | fallback chain | Gemini model override |
-| `GEMINI_TIMEOUT_SECONDS` | No | `30` | Chatbot Gemini timeout |
-| `OPENAI_API_KEY` | Optional | none | OpenAI key |
-| `OPENAI_LLM_MODEL` | No | `gpt-4o-mini` | AI insights LLM model |
-| `OPENAI_WHISPER_MODEL` | No | `whisper-1` | Audio transcription model |
-| `GROQ_API_KEY` | Optional | none | Groq key |
-| `ANTHROPIC_API_KEY` | Optional | none | Anthropic key |
+### 4.14 Chatbot Tool Router
+- Frontend page: `Chatbot`
+- Backend endpoint: `POST /chatbot/chat`
+- Flow:
+  1. User asks natural-language CRM question.
+  2. Gemini-based tool router selects CRM tool (`get_leads`, `add_lead`, etc.) or general assistant response.
+  3. Result + conversation memory are returned for multi-turn interactions.
 
-### Google Sheets sync utility (optional)
+---
 
-| Variable | Required | Default |
-| --- | --- | --- |
-| `GOOGLE_SPREADSHEET_NAME` | No | `CRM form (Responses)` |
-| `GOOGLE_WORKSHEET_NAME` | No | `Form Responses 1` |
-| `MONGODB_COLLECTION_NAME` | No | `leads` |
-
-## 7. Installation and Startup
-
-### 7.1 Clone and create virtual environment (Windows PowerShell)
-
-```powershell
-git clone <your-repo-url>
-cd "AI_Powered_CRM"
-python -m venv .venv
-& ".\.venv\Scripts\Activate.ps1"
-```
-
-### 7.2 Install Python dependencies
-
-```powershell
-pip install -r requirements.txt
-pip install -r .\backend\requirements.txt
-```
-
-### 7.3 Install frontend dependencies
-
-```powershell
-cd .\frontend
-npm install
-cd ..
-```
-
-### 7.4 Start backend (primary API)
-
-```powershell
-cd .\backend\services
-python main.py
-```
-
-API docs: `http://localhost:8000/docs`
-
-### 7.5 Start frontend
-
-```powershell
-cd .\frontend
-npm run dev
-```
-
-Frontend: `http://localhost:3000`
-
-### 7.6 Optional: start API + periodic scheduler together
-
-```powershell
-cd .\backend\services
-python start_crm_services.py
-```
-
-## 8. Frontend Routes and Feature Mapping
-
-Protected app routes are defined in `frontend/src/App.jsx`.
-
-| Route | Page | Primary backend calls |
-| --- | --- | --- |
-| `/dashboard` | Dashboard | `GET /leads?limit=50` |
-| `/addleads` | Add Lead | `POST /predict` |
-| `/mlstats` | ML Stats | `GET /stats`, `GET /model/info` |
-| `/ai-insights` | AI Insights | `POST /ai-insights/generate` |
-| `/sales-forecasting` | Sales Forecasting | `GET /sales-forecast` |
-| `/client-ltv` | CLV Prediction | `GET /leads`, `POST /clv/predict` |
-| `/followup-optimizer` | Follow-up Optimizer | `GET /leads`, `POST /followup/optimize` |
-| `/chatbot` | Chatbot | `POST /chatbot/chat` |
-| `/candidate/:candidate_id` | Candidate Profile | `GET /candidate/{id}`, `POST /lead-enrichment/enrich-company`, `POST /email/generate-followup` |
-| `/lead/:id` | Lead Detail | `GET /lead/{id}`, `POST /email/generate-followup` |
-| `/lead/edit/:id` | Edit Lead | Uses direct `fetch` to `http://localhost:8001/lead/{id}` |
-| `/profile` | Profile | localStorage update + `userUpdated` event |
+## 5. Frontend Route Map
 
 Public routes:
+- `/`
 - `/login`
 - `/signup`
 
-## 9. Feature-by-Feature Behavior
+Application routes:
+- `/dashboard`
+- `/addleads`
+- `/mlstats`
+- `/lead-generation`
+- `/lead-dashboard`
+- `/lead-scoring-conversion`
+- `/ai-insights`
+- `/sales-forecasting`
+- `/client-ltv`
+- `/followup-optimizer`
+- `/chatbot`
+- `/lead/:id`
+- `/lead/edit/:id`
+- `/candidate/:candidate_id`
+- `/profile`
 
-### 9.1 Authentication (Admin-only)
+---
 
-Frontend pages:
-- `frontend/src/pages/Login.jsx`
-- `frontend/src/pages/Signup.jsx`
+## 6. Backend API Catalog (Current)
 
-Backend endpoints:
-- `POST /auth/signup` (also legacy `POST /api/auth/signup`)
-- `POST /auth/login` (also legacy `POST /api/auth/login`)
-
-How it works:
-1. Signup/login posts user credentials to FastAPI.
-2. Backend validates role as admin.
-3. Password is hashed with PBKDF2-HMAC in auth service.
-4. JWT token returned to frontend.
-5. Frontend stores token/user/role in localStorage.
-
-### 9.2 Add Lead + ML Temperature Prediction
-
-Frontend page:
-- `frontend/src/pages/AddLead.jsx`
-
-Backend endpoint:
-- `POST /predict`
-
-How it works:
-1. Form captures candidate + optional company fields.
-2. Frontend normalizes optional empty strings to `null` and numeric fields to numbers.
-3. Backend validates payload using `LeadInput`.
-4. `ml_prediction_service` maps incoming schema to model features.
-5. Model predicts temperature (`Hot`, `Warm`, `Cold`) and confidence.
-6. Lead stored/updated in MongoDB `leads` collection with `unique_id` and `ml_prediction`.
-
-### 9.3 Dashboard Lead Intelligence
-
-Frontend page:
-- `frontend/src/pages/Dashboard.jsx`
-
-Backend endpoint:
-- `GET /leads?limit=50`
-
-How it works:
-1. Fetches most recent leads from MongoDB.
-2. Frontend normalizes mixed key naming from historical records.
-3. Displays total leads, hot leads, and average confidence.
-4. Table action navigates to candidate profile route.
-
-### 9.4 Candidate Profile and Company Enrichment
-
-Frontend page:
-- `frontend/src/pages/CandidateProfile.jsx`
-
-Backend endpoints:
-- `GET /candidate/{candidate_id}`
-- `POST /lead-enrichment/enrich-company`
-
-How it works:
-1. Candidate is loaded by `unique_id` (fallback to Mongo `_id`).
-2. User edits company fields client-side.
-3. Enrichment endpoint extracts domain, scrapes website content (if provided), and generates intelligence summary.
-4. Intelligence panel shows industry, size estimate, decision makers, summary.
-
-### 9.5 Smart Follow-up Email Generation
-
-Frontend components/pages:
-- `frontend/src/components/SmartEmailGeneratorModal.jsx`
-- Used in candidate and lead detail pages
-
-Backend endpoint:
-- `POST /email/generate-followup`
-
-How it works:
-1. Modal sends `unique_id`, `deal_stage`, and `past_communication`.
-2. Backend fetches lead details from ML service.
-3. Prompt is generated using lead profile + lead temperature + deal context.
-4. LLM provider is auto-selected from environment.
-5. Response is parsed into `subject` + `body` and returned.
-
-### 9.6 AI Insights from Transcript/Chat/Notes
-
-Frontend page:
-- `frontend/src/pages/AIInsights.jsx`
-
-Backend endpoint:
-- `POST /ai-insights/generate` (multipart)
-
-How it works:
-1. User submits source type, optional text, optional file.
-2. For call transcripts, supported audio files can be transcribed via Whisper.
-3. Structured JSON is generated by LLM with strict schema.
-4. Output is sanitized and stored in MongoDB `ai_insights` collection.
-5. UI renders pain points, budget probability, urgency, next action, follow-up timeline.
-
-### 9.7 ML Stats Dashboard
-
-Frontend page:
-- `frontend/src/pages/MlStateSample.jsx`
-
-Backend endpoints:
-- `GET /stats`
-- `GET /model/info`
-
-How it works:
-1. Stats aggregation reads ML predictions from MongoDB.
-2. Distribution and confidence metrics are visualized with charts.
-3. Model metadata is shown (accuracy, feature count, training date).
-
-### 9.8 Sales Forecasting
-
-Frontend page:
-- `frontend/src/pages/SalesForecasting.jsx`
-
-Backend endpoint:
-- `GET /sales-forecast?months=&limit=`
-
-How it works:
-1. Pulls leads from MongoDB and builds month-level revenue/closure series.
-2. Computes pipeline health, close rate, trend direction, projected next month revenue.
-3. Returns founder-facing recommendation text.
-
-### 9.9 Follow-up Optimization
-
-Frontend page:
-- `frontend/src/pages/FollowupOptimizer.jsx`
-
-Backend endpoint:
-- `POST /followup/optimize`
-
-How it works:
-1. User selects a lead and submits interaction history (`sent_time`, optional `reply_time`, `channel`).
-2. Data processor validates and normalizes temporal records.
-3. Pattern analyzer computes response trends and reliability.
-4. Recommender returns best day/time/channel with confidence and reason.
-
-### 9.10 Client Lifetime Value (CLV) Prediction
-
-Frontend page:
-- `frontend/src/pages/ClientLtvPrediction.jsx`
-
-Backend endpoint:
-- `POST /clv/predict`
-
-How it works:
-1. User selects existing customer ID or inputs sample values.
-2. Backend validates behavior features and predicts CLV.
-3. Uses tuned model if available; otherwise uses deterministic rule-based fallback.
-4. Returns CLV, upsell band, and cross-sell timing window.
-
-### 9.11 Chatbot Tool Routing
-
-Frontend page:
-- `frontend/src/pages/Chatbot.jsx`
-
-Backend endpoint:
-- `POST /chatbot/chat`
-
-Supported tool intents (from `backend/services/chatbot/tool_schema.py`):
-- `get_leads`
-- `add_lead`
-- `analyze_conversation`
-- `enrich_company`
-- `get_stats`
-- `general_assistant`
-
-How it works:
-1. User prompt + `user_context` sent to chatbot endpoint.
-2. Gemini tool router predicts `{ tool, arguments }` JSON.
-3. Arguments are validated and normalized server-side.
-4. Handler executes one tool and returns structured output + human-readable message.
-5. Conversation memory is persisted in frontend localStorage and reused in later prompts.
-
-## 10. Backend API Reference
-
-Base URL: `http://localhost:8000`
-
-### 10.1 Core and health
+### Health and System
 - `GET /`
 - `GET /health`
 
-### 10.2 Auth
+### Auth
 - `POST /auth/signup`
 - `POST /auth/login`
-- Legacy aliases: `POST /api/auth/signup`, `POST /api/auth/login`
+- Legacy aliases also supported:
+  - `POST /api/auth/signup`
+  - `POST /api/auth/login`
 
-### 10.3 Lead operations
+### Lead and ML Temperature
 - `POST /predict`
 - `GET /lead/{unique_id}`
 - `GET /candidate/{candidate_id}`
 - `GET /leads`
-- `GET /leads/temperature/{temperature}`
 - `GET /leads/hot`
 - `GET /leads/warm`
 - `GET /leads/cold`
+- `GET /leads/temperature/{temperature}`
 - `POST /batch-predict`
-
-### 10.4 Analytics and AI
 - `GET /stats`
 - `GET /model/info`
-- `GET /sales-forecast`
+
+### Lead Generation + Conversion Scoring
+- `POST /lead-generation/search-query`
+- `POST /lead-generation/qualify-search-results`
+- `GET /lead-generation/dashboard`
+- `POST /lead-scoring/conversion/predict`
+- `GET /lead-scoring/conversion/model-info`
+- `POST /lead-scoring/conversion/train`
+
+### Sales Intelligence
 - `POST /ai-insights/generate`
+- `POST /conversation-intelligence/analyze`
+- `GET /conversation-intelligence/lead/{lead_id}`
+- `GET /conversation-intelligence/overview`
+- `GET /sales-forecast`
+
+### CRM AI Workflows
 - `POST /lead-enrichment/enrich-company`
+- `POST /email/generate-followup`
 - `POST /followup/optimize`
 - `POST /clv/predict`
-- `POST /email/generate-followup`
 - `POST /chatbot/chat`
 
-## 11. Important Request Contracts
+Interactive API docs:
+- Swagger UI: `http://localhost:8000/docs`
 
-### 11.1 `/predict` example
+---
 
-```json
-{
-	"name": "Aarav Mehta",
-	"email": "aarav@example.com",
-	"role_position": "Data Engineer",
-	"years_of_experience": 4,
-	"skills": "Python, Spark, SQL",
-	"location": "Bengaluru",
-	"expected_salary": 1800000,
-	"willing_to_relocate": "Yes"
-}
+## 7. Setup and Run (Windows)
+
+### 7.1 Prerequisites
+- Python 3.10+
+- Node.js 18+
+- npm 9+
+- MongoDB (Atlas or local)
+
+### 7.2 Create Virtual Environment and Install Dependencies
+
+From project root:
+
+```cmd
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+pip install -r backend\requirements.txt
 ```
 
-### 11.2 `/ai-insights/generate` multipart fields
+Install frontend dependencies:
 
-- `source_type` (required): `call_transcript` | `whatsapp_chat` | `meeting_notes`
-- `conversation_text` (optional)
-- `file` (optional)
-
-### 11.3 `/followup/optimize` example
-
-```json
-{
-	"lead_id": "LEAD_001",
-	"interactions": [
-		{
-			"sent_time": "2026-03-20T10:00:00",
-			"reply_time": "2026-03-20T14:30:00",
-			"channel": "email"
-		}
-	]
-}
+```cmd
+cd frontend
+npm install
+cd ..
 ```
 
-### 11.4 `/clv/predict` example
+### 7.3 Start Backend (Primary)
 
-```json
-{
-	"customer_id": "LEAD_001",
-	"industry_type": "saas",
-	"engagement_level": "high",
-	"purchase_behavior": {
-		"recency_days": 15,
-		"orders_last_12_months": 20,
-		"avg_order_value": 1600,
-		"unique_products_purchased": 12,
-		"customer_lifetime_days": 540,
-		"avg_days_between_orders": 18,
-		"items_per_order": 3,
-		"total_spend_last_12_months": 38000
-	}
-}
+Option A (from project root):
+
+```cmd
+python backend\services\main.py
 ```
 
-### 11.5 `/chatbot/chat` example
+Option B (as requested, from services folder):
 
-```json
-{
-	"user_input": "Show high probability leads from last 30 days",
-	"user_context": {}
-}
-```
-
-## 12. Frontend Integration Notes
-
-- Axios base URL is `http://localhost:8000` (`frontend/src/api/Api.jsx`).
-- Frontend dev server is configured for port `3000` (`frontend/vite.config.js`).
-- Sidebar shell is collapsible and implemented in `frontend/src/components/Navbar.jsx`.
-- Auth route convention is `/auth/*` (without `/api` prefix); `/api/auth/*` exists only as legacy alias.
-
-## 13. Data Persistence Summary
-
-### MongoDB collections used
-- `users`: admin accounts
-- `leads`: lead records + ML predictions + metadata
-- `ai_insights`: generated conversation intelligence
-
-### Lead identity behavior
-- Unique lead ID (`unique_id`) is deterministic from identifying fields where possible.
-- Existing leads are updated if same `unique_id` is found.
-
-## 14. Legacy and Compatibility Notes
-
-- `app.py` at repository root is a legacy Flask service and not the primary runtime path.
-- `frontend/src/pages/EditLead.jsx` currently uses direct `fetch` to `http://localhost:8001/lead/{id}` and does not use the shared Axios client on port 8000.
-- Both modern and older folder variants exist for some services (for example, spaced folder names). Current runtime paths are wired in `backend/services/main.py`.
-
-## 15. Development and Validation Commands
-
-### Frontend
-
-```powershell
-cd .\frontend
-npm run dev
-npm run build
-npm run lint
-```
-
-### Backend
-
-```powershell
-cd .\backend\services
+```cmd
+cd backend\services
 python main.py
 ```
 
-### ML training (optional)
+Backend available at:
+- API: `http://localhost:8000`
+- Docs: `http://localhost:8000/docs`
 
-```powershell
-cd .\ml_model
-python train_model.py
+### 7.4 Start Frontend
+
+```cmd
+cd frontend
+npm run dev
 ```
 
-## 16. Troubleshooting
+Frontend available at:
+- `http://localhost:3000`
 
-### 16.1 Backend starts but auth fails
-- Verify `MONGODB_URI` and database network access.
-- Check if `SKIP_MONGODB` is unintentionally set.
+### 7.5 Run API + Scheduler Together (Optional)
 
-### 16.2 Chatbot fails with provider errors
-- Verify `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
-- Check `GEMINI_MODEL` override and quota.
+```cmd
+cd backend\services
+python start_crm_services.py
+```
 
-### 16.3 Smart email generator returns placeholder
-- No LLM key was resolved.
-- Set one of: `LLM_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`.
+This starts:
+- FastAPI backend
+- Periodic sync runner (MongoDB to Google Sheets utility)
 
-### 16.4 AI Insights audio transcription fails
-- Ensure `OPENAI_API_KEY` is set.
-- Confirm uploaded file extension is supported for call transcripts.
+---
 
-### 16.5 Frontend route works but API call fails
-- Confirm backend is on `http://localhost:8000`.
-- Review browser console and backend logs.
-- For edit page specifically, confirm service availability on `http://localhost:8001`.
+## 8. Environment Variables
 
-## 17. Security Notes
+Create a `.env` file in project root.
 
-- Replace `JWT_SECRET_KEY` in all non-local environments.
-- Restrict CORS origins in production (`allow_origins` is currently permissive).
-- Do not commit `.env` or cloud credentials.
-- Rotate provider API keys and enforce least-privilege access.
+### Required for normal backend operation
 
-## 18. License
+```env
+MONGODB_URI=your_mongodb_connection_string
+DB_NAME=ai_crm_db
+JWT_SECRET_KEY=replace_with_a_secure_secret
+```
 
-MIT License. See `LICENSE`.
+### Useful optional variables
+
+```env
+# Dev fallback auth
+SKIP_MONGODB=false
+
+# LLM routing
+LLM_PROVIDER=openai
+LLM_API_KEY=
+LLM_MODEL=gpt-4o-mini
+
+# Provider-specific keys
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+GOOGLE_API_KEY=
+GROQ_API_KEY=
+ANTHROPIC_API_KEY=
+
+# Gemini/chatbot tuning
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_TIMEOUT_SECONDS=30
+
+# AI insights / transcription
+OPENAI_LLM_MODEL=gpt-4o-mini
+OPENAI_WHISPER_MODEL=whisper-1
+
+# Conversation intelligence auto-chain
+CONV_INTELLIGENCE_AUTO_FROM_AI_INSIGHTS=true
+
+# Mongo connection tuning
+MONGO_SERVER_SELECTION_TIMEOUT_MS=7000
+MONGO_CONNECT_TIMEOUT_MS=7000
+MONGO_SOCKET_TIMEOUT_MS=12000
+
+# Google Sheets sync (optional)
+GOOGLE_SPREADSHEET_NAME=CRM form (Responses)
+GOOGLE_WORKSHEET_NAME=Form Responses 1
+MONGODB_COLLECTION_NAME=leads
+```
+
+---
+
+## 9. Developer Notes
+
+### Primary runtime to use
+- Use `backend/services/main.py` for backend runtime.
+- `app.py` in project root is a legacy Flask app and not the primary service used by the frontend.
+
+### Frontend API base behavior
+- Axios base URL is configured as `http://localhost:8000`.
+- Vite proxy for `/api` to `8000` exists, but current service layer primarily uses direct base URL calls.
+
+### Known integration note
+- `frontend/src/pages/EditLead.jsx` currently points to `http://localhost:8001` via direct `fetch`, which differs from the main backend port `8000`.
+
+---
+
+## 10. Troubleshooting
+
+### Backend not reachable from frontend
+- Confirm backend is running on `8000`.
+- Open `http://localhost:8000/docs` directly.
+- Check terminal for import/model/mongo errors.
+
+### MongoDB errors at startup
+- Verify `MONGODB_URI` and network access.
+- For local UI testing without DB, set `SKIP_MONGODB=true` (auth fallback only).
+
+### AI endpoints returning placeholder or provider errors
+- Set provider keys in `.env` (`OPENAI_API_KEY`, `GEMINI_API_KEY`, etc.).
+- Verify `LLM_PROVIDER` and model names are valid for your account.
+
+### Frontend starts but data is empty
+- Validate backend is up and database has records.
+- Confirm API calls in browser dev tools return `success: true` payloads.
+
+---
+
+## 11. License
+
+Licensed under the MIT License. See `LICENSE` for details.
